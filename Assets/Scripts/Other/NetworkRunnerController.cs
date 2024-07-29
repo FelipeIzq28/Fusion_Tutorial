@@ -4,13 +4,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class NetworkRunnerController : MonoBehaviour, INetworkRunnerCallbacks
 {
+    public event Action OnStartedRunnerconnection;
+    public event Action OnPlayerJoinedSuccesfully;
     [SerializeField] private NetworkRunner networkRunnerPrefab;
     private NetworkRunner networkRunnerInstance;
+
+    public void ShutDownRunner()
+    {
+        networkRunnerInstance.Shutdown();
+    }
     public async void StartGame(GameMode mode, string roomName)
     {
+        OnStartedRunnerconnection?.Invoke();
         if(networkRunnerInstance == null)
         {
             networkRunnerInstance = Instantiate(networkRunnerPrefab);
@@ -82,6 +91,7 @@ public class NetworkRunnerController : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.Log("OnPlayerJoined");
+        OnPlayerJoinedSuccesfully?.Invoke();
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -112,6 +122,8 @@ public class NetworkRunnerController : MonoBehaviour, INetworkRunnerCallbacks
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
         Debug.Log("OnShutdown");
+        const string LOBBY_SCENE = "Lobby";
+        SceneManager.LoadScene(LOBBY_SCENE);
     }
 
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
